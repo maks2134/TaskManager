@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"taskManager/src/files"
 	input "taskManager/src/input"
 	menu "taskManager/src/menu"
 	task "taskManager/src/task"
@@ -10,14 +11,14 @@ import (
 
 func main() {
 	var tasks []task.Task
-	input := input.NewConsoleInput()
+	consoleInput := input.NewConsoleInput()
 
 	for {
-		choice := menu.MenuPrint(input)
+		choice := menu.MenuPrint(consoleInput)
 		switch choice {
 		case 1:
 			var newTask task.Task
-			newTask.AddTask(input)
+			newTask.AddTask(consoleInput)
 			tasks = append(tasks, newTask)
 		case 2:
 			if len(tasks) == 0 {
@@ -32,7 +33,7 @@ func main() {
 				fmt.Println("Список задач пуст.")
 			} else {
 				fmt.Println("Введите ID задачи, которую нужно отметить как выполненную:")
-				idStr := input.EnterString()
+				idStr := consoleInput.EnterString()
 				var id int64
 				_, err := fmt.Sscan(idStr, &id)
 				if err != nil {
@@ -56,15 +57,21 @@ func main() {
 			if len(tasks) == 0 {
 				fmt.Println("Список задач пуст.")
 			} else {
-				tasks[0].RemoveTask(&tasks, input)
+				tasks[0].RemoveTask(&tasks, consoleInput)
 			}
 		case 5:
 			if len(tasks) == 0 {
 				fmt.Println("Список задач пуст.")
 			} else {
-				tasks[0].PatchTask(&tasks, input)
+				tasks[0].PatchTask(&tasks, consoleInput)
 			}
 		case 6:
+			fmt.Println("Сохранение задач в файл taskDate.json")
+			files.SaveTasksToFile("C:\\Users\\maks2\\GolandProjects\\taskManager\\src\\public\\taskDate.json", tasks)
+		case 7:
+			fmt.Println("Загрузка задач из файла taskDate.json")
+			tasks = files.LoadTasksFromFile("C:\\Users\\maks2\\GolandProjects\\taskManager\\src\\public\\taskDate.json")
+		case 8:
 			fmt.Println("Выход из программы...")
 			return
 		default:

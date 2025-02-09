@@ -4,50 +4,54 @@ import (
 	"fmt"
 	"log"
 	"sync/atomic"
-	input "taskManager/src/input"
-	"taskManager/src/menu"
 	"time"
+
+	input "taskManager/src/input"
+	menu "taskManager/src/menu"
 )
 
 var globalID int64
 
-type Excutor struct {
-	nameExcutor string
+// Тип для исполнителя задачи.
+type Executor struct {
+	Name string `json:"name"`
 }
 
+// Тип для дат задачи.
 type Date struct {
-	startDate time.Time
-	endDate   time.Time
+	StartDate time.Time `json:"start_date"`
+	EndDate   time.Time `json:"end_date"`
 }
 
+// Экспортируемая структура задачи.
 type Task struct {
-	ID              int64
-	headingTask     string
-	descriptionTask string
-	deadLineTask    Date
-	executorTask    Excutor
-	completeTask    bool
+	ID              int64    `json:"id"`
+	HeadingTask     string   `json:"heading_task"`
+	DescriptionTask string   `json:"description_task"`
+	DeadLineTask    Date     `json:"dead_line_task"`
+	ExecutorTask    Executor `json:"executor_task"`
+	CompleteTask    bool     `json:"complete_task"`
 }
 
 func (task *Task) SetCompletedTask(answer bool) {
-	task.completeTask = answer
+	task.CompleteTask = answer
 }
 
 func (task *Task) SetDescriptionTask(description string) {
-	task.descriptionTask = description
+	task.DescriptionTask = description
 }
 
 func (task *Task) SetHeadingTask(title string) {
-	task.headingTask = title
+	task.HeadingTask = title
 }
 
 func (task *Task) SetDeadlineTask(startDate time.Time, endDate time.Time) {
-	task.deadLineTask.startDate = startDate
-	task.deadLineTask.endDate = endDate
+	task.DeadLineTask.StartDate = startDate
+	task.DeadLineTask.EndDate = endDate
 }
 
 func (task *Task) SetExecutorTask(executor string) {
-	task.executorTask.nameExcutor = executor
+	task.ExecutorTask.Name = executor
 }
 
 func (task *Task) createIdTask() {
@@ -64,13 +68,13 @@ func (task *Task) AddTask(input input.ConsoleInput) {
 	fmt.Println("Введите дату начала задачи в формате YYYY-MM-DD:")
 	startDate, err := input.EnterDate()
 	if err != nil {
-		log.Println("Ошибка ввода")
+		log.Println("Ошибка ввода даты начала:", err)
 	}
 
 	fmt.Println("Введите дату завершения задачи в формате YYYY-MM-DD:")
 	endDate, err := input.EnterDate()
 	if err != nil {
-		log.Println("Ошибка ввода")
+		log.Println("Ошибка ввода даты завершения:", err)
 	}
 	task.SetDeadlineTask(startDate, endDate)
 
@@ -80,19 +84,19 @@ func (task *Task) AddTask(input input.ConsoleInput) {
 	task.createIdTask()
 	fmt.Println("Создана задача с ID:", task.ID)
 
-	task.completeTask = false
+	task.CompleteTask = false
 }
 
 func (task *Task) ViewingTask() {
 	fmt.Println("========================================")
 	fmt.Printf("ID задачи: %d\n", task.ID)
-	fmt.Println("Название:", task.headingTask)
-	fmt.Println("Описание:", task.descriptionTask)
+	fmt.Println("Название:", task.HeadingTask)
+	fmt.Println("Описание:", task.DescriptionTask)
 	fmt.Printf("Дата начала: %s, Дата завершения: %s\n",
-		task.deadLineTask.startDate.Format("2006-01-02"),
-		task.deadLineTask.endDate.Format("2006-01-02"))
-	fmt.Println("Ответственный:", task.executorTask.nameExcutor)
-	if task.completeTask {
+		task.DeadLineTask.StartDate.Format("2006-01-02"),
+		task.DeadLineTask.EndDate.Format("2006-01-02"))
+	fmt.Println("Ответственный:", task.ExecutorTask.Name)
+	if task.CompleteTask {
 		fmt.Println("Статус: Выполнено")
 	} else {
 		fmt.Println("Статус: Не выполнено")
@@ -143,6 +147,7 @@ func (task *Task) PatchTask(taskSlice *[]Task, input input.ConsoleInput) {
 	}
 	if index == -1 {
 		fmt.Println("Данный ID не найден в системе")
+		return
 	}
 
 	tempTask := (*taskSlice)[index]
@@ -151,34 +156,33 @@ func (task *Task) PatchTask(taskSlice *[]Task, input input.ConsoleInput) {
 		expr := menu.MenuPatchPrint(input)
 		switch expr {
 		case 1:
-			fmt.Println("Введите новый загаловок задачи")
+			fmt.Println("Введите новый заголовок задачи")
 			tempTask.SetHeadingTask(input.EnterString())
 		case 2:
 			fmt.Println("Введите новое описание задачи")
 			tempTask.SetDescriptionTask(input.EnterString())
 		case 3:
-			fmt.Println("Введите новый день начала таски")
+			fmt.Println("Введите новый день начала задачи")
 			startDate, err := input.EnterDate()
 			if err != nil {
 				log.Fatal("Ошибка ввода даты начала:", err)
 			}
 
-			fmt.Println("Введите дедлайн таски")
+			fmt.Println("Введите новый дедлайн задачи")
 			endDate, err := input.EnterDate()
 			if err != nil {
-				log.Fatal("Ошибка ввода даты конца", err)
+				log.Fatal("Ошибка ввода даты завершения", err)
 			}
 			tempTask.SetDeadlineTask(startDate, endDate)
 		case 4:
-			fmt.Println("Введите нового исполнителя таски")
+			fmt.Println("Введите нового исполнителя задачи")
 			tempTask.SetExecutorTask(input.EnterString())
 		case 5:
-			fmt.Println("Выход из программы...")
+			fmt.Println("Выход из редактирования задачи...")
 			(*taskSlice)[index] = tempTask
 			return
 		default:
 			fmt.Println("Некорректный выбор. Пожалуйста, попробуйте снова.")
 		}
 	}
-
 }
